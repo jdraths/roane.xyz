@@ -36,19 +36,24 @@ export async function getSortedPostsData() {
   });
 }
 
+// should line up with renamed + defaults frontmatter in `scripts/notion-to-md.ts`
+type TFrontmatter = {
+  id: string;
+  title: string;
+  publishedAt: string;
+  updatedAt: string;
+  excerpt: string;
+  readTime: string;
+  tags?: string[];
+};
+
 export async function getPostData(id: string) {
   try {
     const fullPath = path.join(postsDirectory, `${id}.mdx`);
     const fileContents = fs.readFileSync(fullPath, "utf8");
 
     // Use compileMDX with the same plugins as in next.config.mjs
-    const { frontmatter, content } = await compileMDX<{
-      title: string;
-      publishedAt: string;
-      excerpt: string;
-      readTime: string;
-      tags?: string[];
-    }>({
+    const { frontmatter, content } = await compileMDX<TFrontmatter>({
       source: fileContents,
       options: {
         parseFrontmatter: true,

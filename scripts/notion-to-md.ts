@@ -31,6 +31,7 @@ const pageId = extractNotionPageId(notionUrl);
 class FileSystemExporter implements NotionExporter {
   outputDir: string;
   filePath?: string;
+  pageId?: string;
   // You can define custom configurations for your plugin, allowing users to tailor it to their needs.
   constructor({ outputDir }: { outputDir: string }) {
     this.outputDir = outputDir;
@@ -40,7 +41,7 @@ class FileSystemExporter implements NotionExporter {
     // Create output directory if it doesn't exist
     await fs.mkdir(this.outputDir, { recursive: true });
 
-    console.log("exporter-check", data.pageId);
+    this.pageId = data.pageId;
     // Generate filename from page properties or ID
     let title = data.pageId;
     if (
@@ -96,8 +97,14 @@ async function convertWithMedia() {
     const outputDir = "./posts"; // For markdown file
     const mediaDir = path.join(outputDir, "media"); // For downloaded media
 
+    const exporter = new FileSystemExporter({ outputDir: "./posts" });
+
     const renderer = new MDXRenderer({
+      // frontmatter values below also need to exist in TFrontmatter
       frontmatter: {
+        defaults: {
+          id: pageId,
+        },
         include: [
           "Name",
           "Created",
@@ -105,6 +112,7 @@ async function convertWithMedia() {
           "WordCount",
           "Excerpt",
           "PublishedAt",
+          "UpdatedAt",
         ],
         rename: {
           Name: "title",
@@ -113,6 +121,7 @@ async function convertWithMedia() {
           WordCount: "readTime",
           Excerpt: "excerpt",
           PublishedAt: "publishedAt",
+          UpdatedAt: "updatedAt",
         },
         // exclude: ["Tags"],
         // defaults: { draft: false },
@@ -126,6 +135,17 @@ async function convertWithMedia() {
             if (property.type !== "created_time" || !property.created_time)
               return "";
             return new Date(property.created_time).toISOString().split("T")[0];
+          },
+          UpdatedAt: (property) => {
+            // console.log("Created-check", property)
+            if (
+              property.type !== "last_edited_time" ||
+              !property.last_edited_time
+            )
+              return "";
+            return new Date(property.last_edited_time)
+              .toISOString()
+              .split("T")[0];
           },
           PublishedAt: (property) => {
             // console.log("Created-check", property)
@@ -212,8 +232,6 @@ async function convertWithMedia() {
         return `- ${processedText}\n`;
       },
     });
-
-    const exporter = new FileSystemExporter({ outputDir: "./posts" });
 
     const n2m = new NotionConverter(notion)
       .configureFetcher({ fetchComments: true, fetchPageProperties: true })
