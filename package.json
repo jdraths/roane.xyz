@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "sync": "vite-node scripts/notion-to-md.ts"
   },
   "dependencies": {
     "@eslint/eslintrc": "^3.3.1",

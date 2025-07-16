@@ -1,0 +1,68 @@
+---
+tags: ["Meta"]
+excerpt: "to do & some meta notes"
+readTime: "0 min read"
+publishedAt: "2025-07-15"
+createdAt: "2025-07-15"
+title: "To do and meta notes for this blog"
+---
+
+
+
+    
+
+
+
+    # To do
+
+
+- [ ] markdown formatting for callouts. there’s an example below
+
+- [x] markdown formatting for code blocks
+
+- [x] markdown formatting for footnotes [^1]
+
+- [x] markdown formatting for to-do lists
+
+- [x] parse frontmatter for PublishedAt rather than CreatedAt
+
+- [x] An about page
+
+- [x] dependabot
+
+- [x] eslint
+
+- [ ] table of contents
+
+# Meta
+
+
+## Footnotes
+
+
+They work as comments in notion, however, they cannot be inserted mid-paragraph via notion-to-md; they can only be inserted at the end of a paragraph. So like this footnote right here doesn’t show up until the end. [^2]
+
+
+Footnotes also only work on h1s, paragraphs, todos, and bulletized lists. More notion blocks need to be added to `notion-to-md.ts` manually
+
+
+## Word Count
+
+
+You can get word count by clicking the kebab in the notion page and scrolling to the bottom. The blog then converts word count to read time.
+
+
+## Syncing
+
+
+For now, the blog is synced manually from notion. Simply grab the link from the Share button in Notion, then insert the link into `scripts/notion-to-md.ts` & run `pnpm sync`
+
+
+> 💡 > if you rename the title of the page and then subsequently resync the notion page, then the notion page will be resynced to a new page in the blog
+
+
+
+    
+---
+[^1]: a footnote in a bullet
+[^2]: a footnote on “footnote right here”
