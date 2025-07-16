@@ -1,0 +1,191 @@
+---
+tags: ["AI", "Software"]
+excerpt: "Using “intuitiveness” as an embedded meta context engineering"
+readTime: "6 min read"
+publishedAt: "2025-07-16"
+createdAt: "2025-06-30"
+title: "On Code Etiquette: Meta Context Engineering"
+---
+
+
+
+    
+
+
+
+    In Context Engineering we talk a lot about how to work with a limited context window in our applications. Your application will be consumed by an LLM on behalf of a user. If you provide *sufficient* context the LLM can do more for the user. If you provide *specific* context it can do more, more accurately. The balance between sufficient and specific is the crux of Context Engineering today.
+
+
+There is a meta level to this, too: your Codebase, itself, will be consumed by a code assist LLM. Your Codebase, itself, can either be easy to consume in context or hard, and as an Engineer you should do everything you can to make it easy.
+
+
+This is not a new concept, but here I attempt to crystallize best practices for this concept as Meta Context Engineering.
+
+
+# Meta Context Engineering 
+
+
+In  Context Engineering you must engineer the proper context in your application. In Meta Context Engineering you must engineer the proper context for your Codebase.
+
+
+Claude, as an example, allows you to provide important context through [claude.md](http://claude.md/) files. This is well and good, but I find it tedious and to have diminishing returns. If you have specific contextual rules, you have to explicitly add them to claude.md; this is unavoidable to a certain extent, but it's also a maintenance chore, and chores get skipped.
+
+
+In my experience you can embed context simply in your organization and writing style. You can empower Claude and your other employees to infer context as they interact with your codebase, automatically and effortlessly.
+
+
+The same way we have social conventions to allow us to avoid being overly explicit (tacky) with formalities, your Code conventions allow your coding interactions to infer expected behaviors. Social Etiquette meet Coding Etiquette; and since more people than ever before can become Devs, Coding Etiquette has never been more important.
+
+
+> 🤌 > If you're a career dev this may sound obvious, but Code Assist applications make everyone a dev, and as a result defining your coding conventions has never been more important.
+
+
+So what's the most obvious high level theme for coding etiquette?
+
+
+# Optimize for refactors!
+
+
+I've never measured this myself but anecdotally code refactors have to eat up at least 50% of dev time. 
+
+
+Needs change. Complexities “complexify”. Entropy expands. This is the state of the world. Do you know the absolute highest ROI you can contribute for refactor time savings? Proper and specific naming. Don't have a type named Chat and a function named Chat and an object named Chat. Make it easier for your future self, your Code Assistant (hi, Claude) and hopefully your future employees to find specific implementations without having to pour through through three different versions of the term Chat in order to find the the one version that's needed.
+
+
+# So what do I do?
+
+
+Chat is a bad name
+
+
+Message is a bad name
+
+
+Names should be easily grep-able in your IDE. That means:
+
+
+> 💡 > Use an obvious name (like Chat) + a modifier for specificity 
+
+
+# Obvious name + a modifier
+
+
+Obvious name is important because you need to be able to easily find all instances of an obvious topic, but it's also important that you rarely call any single function or object solely the obvious name. This is because every comment you have will reference the obvious name, and eventually you’ll have hundreds of references to chat. So you'll need modifiers to be able to easily filter your references down. For instance, any feature involving Chat should have Chat as the obvious part of its name. Then you add a modifier like T for Type (`TChat`) or create for a mutation like (`createChatAPI`). Maybe you even have `createChatCtx` and `createChatHook`. How amazing is this though? You can always search `createChat` and find all objects that are related to creation. You can always search `chat` whenever you want to get broader. 
+
+
+Terms like `Ctx` and `Hook` don't need to have specific naming rules. They are only useful to to separate different `createChat` uses. If you ever wanted to find all your hooks for some reason you wouldn't search for `hook`. You'd search for `useQuery` or `useState` or some specific wide spread function name.
+
+
+# API routes
+
+
+Unfortunately API routes in next are a horrific example of un-grep-able naming. API routes use filenames as their naming and unfortunately filenames are some of the least grep-able locations in a codebase, especially when your API route is: `user/[userId]/chat/[chatId]/createMessage.ts`
+
+
+And unfortunately you can't name the API route function. Your function MUST be named GET, POST, etc.
+
+
+So the function violates my obvious + a modifier rule and the file names are hard to grep, too.
+
+
+The brackets in the filename need to be escaped when searched so that's annoying, and as a result the easiest way to grep the above file is via `/createMessage.ts`
+
+
+Unfortunately, IDEs like vsCode don't search file names they only search terms in your Codebase. So here I recommend ALWAYS put the broadest, non-escaped sequence from your filename right in your jsDoc. In the above example that would be: `/createMessage.ts`
+
+
+> ❓ > This made me wonder something. Are server actions also importable in an API route, but consumed as a simple function… or are they an additional API call from the server side?
+
+
+# Use named params
+
+
+It kills me when a dev creates functions with unnamed params. If you named every param it would be super simple for me to find all instances and uses of that param. If you don't I can only search for the function and then I have to count my param spots, which is easily confusable.
+
+
+# Use classes
+
+
+`class User` is a fantastic way to group code. The only anti-pattern I see is when your constructor ends up initializing an entire instance of a large data model when many functions only need a subset.
+
+
+The other potential anti pattern is when your class gets too big…
+
+
+# And when your classes get too big use sub classes
+
+
+`class User` obviously can become gigantic over time. This makes it harder for both humans and LLMs to pour through it to find the one function they need, and to make sure they don't accidentally duplicate logic.
+
+
+The best way to fix that problem is with subclasses. Subclasses can be referenced in a parent class, but encapsulate code in a separate file. So the parent class really becomes an index for all the possibilities. And the sub classes become the implementation.
+
+
+Now your classes become easy, smaller files for humans and LLMs to read and understand.
+
+
+# Don't hardcode type instantiations, use Infer and ReturnType
+
+
+If your `createChat` function returns a type that is slightly different than `TChat`, maybe because it has json safe encoding of dates or other transformations for API consumption, well… that actually sounds like an anti pattern. `createChat` should return a `TChat`. If you need to json encode it you can implement `encodeChatJson` and return `TChatJson`. Here's where it becomes for important to use `ReturnType`. You should not have 
+
+
+```typescript
+type TChat = { createdAt: Date };
+// and 
+type TChatJson = Omit<TChat, createdAt> & { createdAt: string };
+```
+
+
+Instead you should have
+
+
+```typescript
+type TChat = { createdAt: Date };
+// and
+type TChatJson = Awaited<ReturnType<transformChatJson>>;
+```
+
+
+This automatically infers the return type so that every time you change transform chat the types will just work
+
+
+Should you change this function much? No, but this is incredibly low effort and will save you time even the first time you make a change.
+
+
+## When Type Inference Hurts
+
+
+The exception to the above rule is when a function has Complex logic with 2+ paths.
+
+
+In this case you should create an explicit type to ensure that none of your Code paths accidentally return a slightly different type than the other paths. 
+
+
+Inferring the return type actually would simply add an | to the return type AND in theory allow you to return completely different attributes within a type.
+
+
+For instance, it is possible to define
+
+
+```typescript
+type TChatJson = Omit<TChat, createdAt> & {
+  createdAt: string
+}
+```
+
+
+And accidentally have some instances that have a messagesJson and some that don't. Then unless you explicitly type guard when consuming the type, your IDE will never even show you that messagesJson might be available, since some versions of your returnType don't have it.
+
+
+Another example is when your function has complex logic with multiple sub functions all informing what the return type will be. There are reasons to do this, for sure, but when this happens you absolutely MUST explicitly type the return so that future devs don't need to comb through the sub functions piecing together the return object and it's available attributes.
+
+
+## Don’t forget
+
+
+Think about your LLM. Think about your employees. And think about your future self. A little code styling saves everyone some context.
+
+
+
+    

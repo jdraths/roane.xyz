@@ -12,8 +12,7 @@ import { MDXRenderer } from "notion-to-md/plugins/renderer";
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const notionUrl =
-  "https://www.notion.so/To-do-and-a-couple-notes-for-this-blog-231aa2d5844480779235f623d628eb22?source=copy_link";
-
+  "https://www.notion.so/On-Code-Etiquette-Meta-Context-Engineering-222aa2d5844480d399f2d357e907e05b?source=copy_link";
 // Extract Notion page ID from URL
 function extractNotionPageId(url: string): string {
   // This regex extracts the 32-character ID from a Notion URL
