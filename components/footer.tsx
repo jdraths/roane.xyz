@@ -26,11 +26,17 @@ export function Footer() {
           <div>
             <h3 className="mb-4 text-lg font-semibold">Follow</h3>
             <div className="flex space-x-4">
-              <Link href="#" className="text-zinc-400 hover:text-zinc-300">
+              <Link
+                href="https://x.com/RoaneDraths"
+                className="text-zinc-400 hover:text-zinc-300"
+              >
                 <Twitter className="h-5 w-5" />
                 <span className="sr-only">Twitter</span>
               </Link>
-              <Link href="#" className="text-zinc-400 hover:text-zinc-300">
+              <Link
+                href="https://github.com/jdraths"
+                className="text-zinc-400 hover:text-zinc-300"
+              >
                 <Github className="h-5 w-5" />
                 <span className="sr-only">GitHub</span>
               </Link>
