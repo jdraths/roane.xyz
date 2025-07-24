@@ -1,0 +1,314 @@
+---
+tags: ["AI", "Software"]
+excerpt: "A practical example of how to parse SQL components using Tree-Sitter. This concept stems from needing contextual understanding of SQL code for use in LLM embeddings."
+updatedAt: "2025-07-24"
+readTime: "5 min read"
+publishedAt: "2025-07-24"
+createdAt: "2025-07-24"
+title: "Using Tree-Sitter to parse SQL"
+id: "23aaa2d5844480829ffbf8a36c0a638e"
+---
+
+
+
+    
+
+
+
+    # Contextual Understanding of SQL for AI Embeddings
+
+
+Building an AI-enabled application with understanding of code context, for instance an AI Data Analyst, has a ton of fascinating nuance. How can the LLM understand what code does or how two or more different chunks of code, written in different ways, really do the same thing? In a limited context window how can you ensure the LLM can understand the user’s needs in the most succinct way? You can use embeddings that’s how: [^1]
+
+
+1. you can embed an LLM created structured semantic explanation of a given SQL query
+1. you can embed user provided context, for instance if a query was developed in the course of an AI Chat
+1. you can parse the structure of complex SQL queries into its component parts using Tree-Sitter.
+In a perfect world your AI-enabled application probably combines all three of the above.
+
+
+Today I want to talk about #3, using Tree-Sitter to parse SQL into component parts so that it is embedding ready. [^2]
+
+
+## Tree-Sitter
+
+
+Tree-Sitter is written in C, and unfortunately, Tree-Sitter’s documentation is really built for C developers. In all my searching I couldn’t find a nice write-up on how to use Tree-Sitter in a node environment. So that’s what I’m doing here (in a high level way). Enjoy:
+
+
+## Tree-Sitter Language Support
+
+
+Tree-Sitter’s docs list a handful of languages that are supported, and with some googling you can find community extensions like Tree-Sitter-SQL-BigQuery. SQL BigQuery is what we’re going to use for our example today. [^3]
+
+
+## Tree-Sitter query syntax
+
+
+The first thing you need to begin to understand is tree-sitter query syntax. I’ll show how you use the query syntax later in code, but for now it’s important to understand that tree-sitter uses a special query syntax that traverses the AST, and automagically extracts the syntax you’re looking for. [^4]
+
+
+In our SQL use case the best workflow I’ve found to help me develop the query syntax is this:
+
+
+1. Open the demo UI: [https://takegue.github.io/tree-sitter-sql-bigquery/](https://takegue.github.io/tree-sitter-sql-bigquery/)
+1. Pop my sql in the left-hand side & view the tree-sitter query structure on the right
+### A Quick Example
+
+
+Sample SQL
+
+
+```sql
+WITH line_items_expanded AS (
+  SELECT * FROM table_name
+)
+
+SELECT * FROM line_items_expanded lie
+```
+
+
+And the output from the demo UI
+
+
+![Image](/media/image_23aaa2d5-8444-80f5-b26a-e3fbf504b570.png)
+
+
+In the right hand side you can see terms like `cte_clause` `cte` `identifier`. Those are going to be your query terms. 
+
+
+If you want to find all the CTE identifiers you would search:
+
+
+`"(cte alias_name: (identifier) @cte_name (query_expr) @cte_query)"`
+
+
+If you want to find all the FROM clause identifiers you would search:
+
+
+`"(from_clause (from_item (identifier) @table_name))"`
+
+
+The above query syntax is loosely documented in tree-sitter’s docs, here. [^5]
+
+
+And I have a more complete, working example below.
+
+
+## A Complete Example
+
+
+Confused? Keep reading for more examples & typescript code that makes this all work.
+
+
+### Setup your parser
+
+
+This is a quick typescript function that sets up your parsing.
+
+
+```typescript
+import Parser, { Query } from "tree-sitter";
+import SqlBigQuery from "tree-sitter-sql-bigquery";
+
+function parseBigQuerySql(sqlCode: string) {
+    const parser = new Parser();
+    parser.setLanguage(SqlBigQuery as any);
+
+    const tree = parser.parse(sqlCode);
+
+    if (tree.rootNode.isError) {
+      throw new Error("Syntax errors detected in SQL code.");
+    }
+
+    return tree.rootNode;
+}
+```
+
+
+In the above you need to import tree-sitter’s parser and then your sub-package’s Language. In our case our sub-package is `tree-sitter-sql-bigquery`. I had typescript issues with setting `SqlBigQuery` as the language, so I used an ugly `any` to suppress that. I still haven’t figured out that issue.
+
+
+### Find From clauses in a query
+
+
+Pass the output of `parseBigQuerySql` into `findFromClauses` below & you’ll get an array of “FROM” identifiers. All the magic happens in Tree-Sitter’s `Query` class. The second parameter is a query string, which we identified in the Quick Example above.
+
+
+```typescript
+function findFromClauses(node: any): string[] {
+		const tsQuery = "(from_clause (from_item (identifier) @table_name))";
+    // Use Tree-sitter query to find table names in from clauses
+    const query = new Query(SqlBigQuery as any, tsQuery);
+
+    const captures = query.captures(node);
+    return captures.map(({ node: tableNode }) => tableNode.text);
+  }
+
+```
+
+
+If your your query has CTEs in it, then the identifiers will include variable names of those CTEs. For instance, in a contrived example, the below query with a CTE will return `["table_name", "line_items_expanded"]` from `findFromClauses`. To solve this problem we need to know which clauses are CTEs…
+
+
+### Extract the CTEs
+
+
+Same principal at work here. Create a suitable tree-sitter query string (see the Quick Example). Pipe your parsed nodes into the function; out comes the name, query & from identifier for each CTE.
+
+
+```typescript
+function findCTEs(node: any): Array<{ name: string; query: string; from: string[] }> {
+    const tsQuery = "(cte alias_name: (identifier) @cte_name (query_expr) @cte_query)";
+    // Use Tree-sitter query to find CTEs
+    const query = new Query(SqlBigQuery as any, tsQuery);
+
+    const captures = query.captures(node);
+    const ctes: Array<{ name: string; query: string; from: string[] }> = [];
+
+    // Group captures by CTE (every 2 captures = 1 CTE: name + query)
+    for (let i = 0; i < captures.length; i += 2) {
+      const nameCapture = captures[i];
+      const queryCapture = captures[i + 1];
+
+      if (nameCapture && queryCapture) {
+        const name = nameCapture.node.text;
+        const query = queryCapture.node.text;
+        const from = this.findFromClauses(queryCapture.node);
+
+        ctes.push({ name, query, from });
+      }
+    }
+
+    return ctes;
+  }
+}
+```
+
+
+### Just the table names
+
+
+Lastly, we need to exclude the CTE names from the FROM identifiers. This is as simple as filtering CTE names out of the from clauses array:
+
+
+```typescript
+const nodes = parseBigQuerySql(someSqlString);
+const froms = findFromClauses(nodes);
+const cteNames = findCTEs(nodes).map(cte => cte.name);
+const justTables = froms.filter(table => !cteNames.includes(table));
+
+```
+
+
+### Wrap it all up in a class
+
+
+The below class is my first-draft of a production-ready solution. It packages up all of the above code into a ready-to-ship solution.
+
+
+```typescript
+import Parser, { Query } from "tree-sitter";
+import SqlBigQuery from "tree-sitter-sql-bigquery";
+
+export class TreeSitterBQ {
+  private sql: string;
+  private parsedTree: any;
+
+  constructor(sql: string) {
+    this.sql = sql;
+    this.parsedTree = this.parseBigQuerySql(this.sql);
+  }
+
+  private parseBigQuerySql(sqlCode: string) {
+    const parser = new Parser();
+    parser.setLanguage(SqlBigQuery as any);
+
+    const tree = parser.parse(sqlCode);
+
+    if (tree.rootNode.isError) {
+      throw new Error("Syntax errors detected in SQL code.");
+    }
+
+    return tree.rootNode;
+  }
+  
+  private ensureParsed(): void {
+    if (!this.parsedTree) {
+      this.parsedTree = this.parseBigQuerySql(this.sql);
+      if (!this.parsedTree) {
+        throw new Error("Failed to parse SQL");
+      }
+    }
+  }
+
+  extractFromClauses(): string[] {
+    this.ensureParsed();
+    return this.findFromClauses(this.parsedTree);
+  }
+
+  extractCTEs(): Array<{ name: string; query: string; from: string[] }> {
+    this.ensureParsed();
+    return this.findCTEs(this.parsedTree);
+  }
+  
+  /**
+   * a helper function that finds the from clauses that are not CTE names, which would be the source tables
+   */
+  extractSourceTables(): string[] {
+    this.ensureParsed();
+    const froms = this.extractFromClauses();
+    const cteNames = this.extractCTEs().map(cte => cte.name);
+    return froms.filter(table => !cteNames.includes(table));
+  }
+  
+  private findFromClauses(node: any): string[] {
+    // Use Tree-sitter query to find table names in from clauses
+    const query = new Query(SqlBigQuery as any, "(from_clause (from_item (identifier) @table_name))");
+
+    const captures = query.captures(node);
+    return captures.map(({ node: tableNode }) => tableNode.text);
+  }
+  
+  private findCTEs(node: any): Array<{ name: string; query: string; from: string[] }> {
+    // Use Tree-sitter query to find CTEs
+    const query = new Query(SqlBigQuery as any, "(cte alias_name: (identifier) @cte_name (query_expr) @cte_query)");
+
+    const captures = query.captures(node);
+    const ctes: Array<{ name: string; query: string; from: string[] }> = [];
+
+    // Group captures by CTE (every 2 captures = 1 CTE: name + query)
+    for (let i = 0; i < captures.length; i += 2) {
+      const nameCapture = captures[i];
+      const queryCapture = captures[i + 1];
+
+      if (nameCapture && queryCapture) {
+        const name = nameCapture.node.text;
+        const query = queryCapture.node.text;
+        const from = this.findFromClauses(queryCapture.node);
+
+        ctes.push({ name, query, from });
+      }
+    }
+
+    return ctes;
+  }
+}
+```
+
+
+## Further Reading
+
+
+The most obvious examples of AI-enabled applications using contextual understanding of code blocks are Cursor, Claude Code and Continue.dev. Thankfully, Continue is open-source, so it’s easy to dig through how they solve this problem. I’m not going to belabor their solution, except to say they’re how I discovered Tree-Sitter. [^6]
+
+
+
+    
+---
+[^1]: https://www.pinecone.io/learn/vector-embeddings/
+[^2]: https://tree-sitter.github.io/tree-sitter/index.html
+[^3]: https://tree-sitter.github.io/tree-sitter/using-parsers/index.html https://www.npmjs.com/package/tree-sitter-sql-bigquery/v/0.0.2?activeTab=readme
+[^4]: AST = Abstract Syntax Tree https://en.wikipedia.org/wiki/Abstract_syntax_tree
+[^5]: https://tree-sitter.github.io/tree-sitter/using-parsers/queries/1-syntax.html
+[^6]: https://github.com/continuedev/continue/blob/main/core/indexing/chunk/code.ts#L225

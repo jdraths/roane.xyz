@@ -1,0 +1,18 @@
+{
+  "pageId": "23aaa2d5-8444-8082-9ffb-f8a36c0a638e",
+  "lastUpdated": "2025-07-24T17:52:56.143Z",
+  "mediaEntries": {
+    "23aaa2d5-8444-80f5-b26a-e3fbf504b570": {
+      "mediaInfo": {
+        "type": "DOWNLOAD",
+        "originalUrl": "https://prod-files-secure.s3.us-west-2.amazonaws.com/f9c7af81-6e49-4c57-86de-3d908a5a111e/07c3220f-f3b4-4c4f-b802-be4576b65266/image.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=ASIAZI2LB466567YXBNI%2F20250724%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20250724T175235Z&X-Amz-Expires=3600&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEAkaCXVzLXdlc3QtMiJHMEUCIGB0A4kz9wkKIS67iD1MVdYvIjj26loTj9Qd1hK25h6YAiEA065KaW7qCDuTwgKOZvs9xna4DknvVf3mOtnB9kEl%2BVYq%2FwMIMhAAGgw2Mzc0MjMxODM4MDUiDHkgCymwnwgIGRZu5SrcAwQhtHZtSxKPlTjralNKmI0f3WbQHHoWk8bqnPH%2BoJ3uEULg%2BaVpDCvxFXodloHPW0PZ%2F3eGbcPESXsY5Cl1%2ByRDU8wmt9UdJU1wrS6bS1pjMiZBC2dyJTBrgbrR0Isf7rPouFWMFfZsaCBmVCX0zK%2BFO7pgWUDWHxAe9WNiihYHh1Fm11u0HH%2BRxOKcs2ZdEMxQikWbUFqA7nMaiwwuh2Bw%2BhSTvB4%2BCizGH0KRZT3LWQs4VLwM2wHYifREJDPg7A9zaBqt1rjSF%2BkeQAEFxa76%2F02tkDsZkpSAUS%2Bvsn8oEQKflVMpfy8Gy6Uw3vbEmbj2wKhaAJvBiQhgthWMy%2F5dCz4GYtTEOQjmGQ8RG002Bn%2BsbCyNsVL%2BbsP9oNZwmZFapsqmzMvaMEU7Bx9RkW6Ut1imu3JnyZN3EZe8ioRu1x%2BES1IW5p1wTdBSimr6dO5r9Nx6BpQooH7nccsJNKiR%2BbNA5Ue8TjWlxh%2BpzbRrOX76%2FMcLWqRm31LXnZKH%2BEHm%2BHsPUzw0RnOc4VGZCxBFp0nYyUpTCLroKZRAgnU%2FQbse%2BiZdFTLgmwSSC8iCKwzXkBVm95CSRhDERZ5BZ4uqhfPqHe19rDLalBvml86gpvMCqOyvAwjClwJQMLPUicQGOqUBXfOX4XCs1uL2GNdLskb6SwWqjPv0o9m%2BR135jd9tOFdYdLeYe3%2BNilSLaRwHc3eIPKCaSqcezZ12K0AWvv0bA6LZ3lkSIIMVN6NC1imFT5D5uOlffG22jAeej0Zvp3rnJq4UFdEO9N2%2FkQQiPxe%2BN5bGvSyfdo9bH4SeAzDySwihyXJuLdBh5eGDxwbCauXrDKn%2F1eFgbhXdwpvW121Ed8I3mUSQ&X-Amz-Signature=3726c0e832bfbea8c0c4be9e2175034d20bb31622e0996c47a8a7e8f18926fbd&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject",
+        "localPath": "public/media/image_23aaa2d5-8444-80f5-b26a-e3fbf504b570.png",
+        "sourceType": "block",
+        "transformedPath": "/media/image_23aaa2d5-8444-80f5-b26a-e3fbf504b570.png"
+      },
+      "lastEdited": "2025-07-24T17:16:00.000Z",
+      "createdAt": "2025-07-24T17:41:41.450Z",
+      "updatedAt": "2025-07-24T17:52:56.143Z"
+    }
+  }
+}

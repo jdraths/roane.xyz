@@ -12,7 +12,7 @@ import { MDXRenderer } from "notion-to-md/plugins/renderer";
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const notionUrl =
-  "https://www.notion.so/On-Code-Etiquette-Meta-Context-Engineering-222aa2d5844480d399f2d357e907e05b?source=copy_link";
+  "https://www.notion.so/Using-Tree-Sitter-to-parse-SQL-23aaa2d5844480829ffbf8a36c0a638e?source=copy_link";
 // Extract Notion page ID from URL
 function extractNotionPageId(url: string): string {
   // This regex extracts the 32-character ID from a Notion URL
@@ -94,7 +94,7 @@ function addCommentsAsFootnotes(
 // Example: https://www.notion.so/On-Code-Etiquette-Meta-Context-Engineering-222aa2d5844480d399f2d357e907e05b?source=copy_link
 async function convertWithMedia() {
   try {
-    const outputDir = "./posts"; // For markdown file
+    const outputDir = "./public"; // For markdown file
     const mediaDir = path.join(outputDir, "media"); // For downloaded media
 
     const exporter = new FileSystemExporter({ outputDir: "./posts" });

@@ -1,4 +1,5 @@
 import type { MDXComponents } from "mdx/types";
+import Image from "next/image";
 
 // This file allows you to provide custom React components
 // to be used in MDX files. You can import and use any
@@ -8,6 +9,21 @@ import type { MDXComponents } from "mdx/types";
 // This file is required to use MDX in `app` directory.
 export function MDXComponents(components: MDXComponents): MDXComponents {
   return {
+    // Handle images with proper paths for Next.js
+    img: ({ src, alt, ...props }: { src?: string; alt?: string; [key: string]: any }) => {
+      // Images are now served directly from /media/ since they're in public/media/
+      const imageSrc = src ?? '';
+      return (
+        <Image
+          src={imageSrc}
+          alt={alt ?? ''}
+          width={800}
+          height={400}
+          className="rounded-lg my-4"
+          {...props}
+        />
+      );
+    },
     // Apply custom styling to MDX components
     h1: ({ children }) => (
       <h1 className="text-3xl font-bold mt-8 mb-4">{children}</h1>
@@ -24,26 +40,29 @@ export function MDXComponents(components: MDXComponents): MDXComponents {
     ),
     code: (props) => <code className="font-mono text-sm" {...props} />,
     // Style task lists
-    ul: ({ children, className, ...props }) => {
+    ul: ({ children, className, ...props }: { children?: React.ReactNode; className?: string; [key: string]: any }) => {
       // Check if this is a task list (contains li > input[type="checkbox"])
       const isTaskList = className?.includes("contains-task-list");
 
       return (
         <ul
-          className={`${className || ""} ${isTaskList ? "list-none pl-0" : "list-disc pl-5"} my-4`}
+          className={`${className ?? ""} ${isTaskList ? "list-none pl-0" : "list-disc pl-5"} my-4`}
           {...props}
         >
           {children}
         </ul>
       );
     },
-    li: ({ children, ...props }) => {
+    li: ({ children, ...props }: { children?: React.ReactNode; [key: string]: any }) => {
       // Check if this list item contains a checkbox
       const hasCheckbox =
         Array.isArray(children) &&
         children.some(
           (child) =>
-            typeof child === "object" && child?.props?.type === "checkbox",
+            typeof child === "object" && 
+            child !== null && 
+            "props" in child &&
+            (child as any).props?.type === "checkbox",
         );
 
       return (

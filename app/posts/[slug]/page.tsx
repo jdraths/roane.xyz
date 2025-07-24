@@ -15,6 +15,10 @@ export default async function PostPage({
     notFound();
   }
 
+  // if (!post.frontmatter) {
+  //   return post.content;
+  // }
+
   // const components = useMDXComponents({})
 
   const { frontmatter } = post;
@@ -33,7 +37,8 @@ export default async function PostPage({
 
 export async function generateStaticParams() {
   const posts = await getSortedPostsData();
-  return posts.map((post) => ({
-    slug: post.id,
-  }));
+  return posts.flatMap((post) => [
+    { slug: post.id },
+    { slug: post.id + ".md" },
+  ]);
 }

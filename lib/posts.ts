@@ -49,6 +49,11 @@ type TFrontmatter = {
 
 export async function getPostData(id: string) {
   try {
+    // if (id.endsWith(".md")) {
+    //   const fullPath = path.join(postsDirectory, `${id}x`);
+    //   const fileContents = fs.readFileSync(fullPath, "utf8");
+    //   return { id, content: fileContents };
+    // }
     const fullPath = path.join(postsDirectory, `${id}.mdx`);
     const fileContents = fs.readFileSync(fullPath, "utf8");
 
