@@ -12,7 +12,7 @@ import { MDXRenderer } from "notion-to-md/plugins/renderer";
 
 const notion = new Client({ auth: process.env.NOTION_TOKEN });
 const notionUrl =
-  "https://www.notion.so/Using-Tree-Sitter-to-parse-SQL-23aaa2d5844480829ffbf8a36c0a638e?source=copy_link";
+  "https://www.notion.so/Trump-Accounts-as-Philanthropy-247aa2d584448051b52ce1e278cd45ce?source=copy_link";
 // Extract Notion page ID from URL
 function extractNotionPageId(url: string): string {
   // This regex extracts the 32-character ID from a Notion URL
